@@ -1,3 +1,7 @@
+# minhaz mahmud
+# cmsc 478 - machine learning
+# hw1
+
 import numpy as np
 import random
 from collections import Counter
@@ -27,7 +31,7 @@ class DataSet(object):
 			self.nodes.append(Node(vector, labels[i]))
 
 	def getNumFeatures(self):
-		return len(self.nodes)
+		return len(self.nodes[0].data)
 
 
 def kmeans(dataSet, k, debug):
@@ -35,6 +39,7 @@ def kmeans(dataSet, k, debug):
 	# Initialize centroids randomly
 	numFeatures = dataSet.getNumFeatures()
 	centroids = getRandomCentroids(dataSet.nodes,numFeatures, k)
+	# centroids = getSmartCentroids(dataSet.nodes,numFeatures, k)
 	vector_size = 784
 
 	# Initialize book keeping vars.
@@ -42,9 +47,7 @@ def kmeans(dataSet, k, debug):
 	oldCentroids = np.zeros((k, vector_size))
 	labels = []
 
-	# Run the main k-means algorithm
 	while not shouldStop(oldCentroids, centroids, iterations):
-		# Save old centroids for convergence test. Book keeping.
 		oldCentroids = centroids
 		iterations += 1
 		
@@ -89,26 +92,32 @@ def kmeans(dataSet, k, debug):
 
 # return k random centroids
 def getRandomCentroids(nodes, numFeatures, k):
-	vector_size = 784
-	l = np.zeros((k, vector_size))
+	l = np.zeros((k, numFeatures))
 	i = 0
 	while(i < k):
-		num = randint(1, numFeatures)
+		num = randint(0, numFeatures-1)
 		if(num not in l):
 			l[i] = np.array(nodes[num].data)
 			i += 1
 	return l
 
-# Function: Should Stop
-# -------------
-# Returns True or False if k-means is done. K-means terminates either
-# because it has run a maximum number of iterations OR the centroids
-# stop changing.
-def shouldStop(oldCentroids, centroids, iterations):
-	# if iterations > MAX_ITERATIONS: return True
 
-	# for centroid in centroids:
-	# 	print centroid
+def getSmartCentroids(nodes, numFeatures, k):
+	l = np.zeros((k, numFeatures))
+	i = 0
+
+	for i in range(k):
+		found = False
+		while(not found):
+			num = randint(0, numFeatures-1)
+			if(int(nodes[num].orig_label) == i):
+				l[i] = np.array(nodes[num].data)
+				found = True
+	
+
+	return l
+
+def shouldStop(oldCentroids, centroids, iterations):
 	distance = dist(oldCentroids, centroids) 
 
 	print "Centroid change: {0}".format(distance)
@@ -122,6 +131,7 @@ def dist(x,y):
 	return np.sqrt(np.sum((x-y)**2))
 
 def printStats(dataset, centroids, labels, k):
+	incorrect = 0
 	for i, centroid in enumerate(centroids):
 		cluster_elems = []
 		print "centroid {0} --------".format(i)
@@ -130,14 +140,16 @@ def printStats(dataset, centroids, labels, k):
 				cluster_elems.append(dataset.nodes[j].orig_label)
 				print dataset.nodes[j].orig_label,
 		most_common = Counter(cluster_elems).most_common(1)
+		incorrect += len(cluster_elems) - most_common[0][1]
 		print "\nmost common={0}".format(most_common)
 		print "# incorrectly classified: {0}".format(len(cluster_elems) - most_common[0][1])
 
+	print "Total Incorrect: {0}".format(incorrect)
 
 
 def main():
-	k = 10
-	dataset = DataSet('mnist_data2.txt','mnist_labels2.txt')
+	k = 5
+	dataset = DataSet('mnist_data.txt','mnist_labels.txt')
 	centroids, labels = kmeans(dataset, k, True)
 
 
