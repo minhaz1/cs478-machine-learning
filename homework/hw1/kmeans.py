@@ -148,7 +148,7 @@ def printStats(dataset, centroids, labels, k):
 
 
 def main():
-	k = 5
+	k = 10
 	dataset = DataSet('mnist_data.txt','mnist_labels.txt')
 	centroids, labels = kmeans(dataset, k, True)
 
