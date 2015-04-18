@@ -4,8 +4,9 @@ import random
 # Minhaz Mahmud
 GRID_SIZE = 15
 NUM_ACTIONS = 4
-GAMMA = .2
-EPISODES = 200
+LEARN_RATE = 0.5
+DISCOUNT_FACTOR = 0.8
+EPISODES = 300
 DEBUG = False
 NOISE = 0
 
@@ -22,7 +23,7 @@ def getReward(state):
 
 def pickAction(Q, state):
 	# add noise, randomly pick something
-	if(random.random() < NOISE):
+	if(random.randint(0,9) < NOISE):
 		return random.randint(0,3)
 	
 	# find max
@@ -41,21 +42,21 @@ def getNextState(state, action):
 
 	if action == up:
 		if DEBUG:
-			print "-- club going up --"
+			print "-- going up --"
 		if state < GRID_SIZE:
 			return state
 		else:
 			return state - GRID_SIZE
 	elif action == down:
 		if DEBUG:
-			print "-- club going down --"
+			print "-- going down --"
 		if state > (GRID_SIZE ** 2) - GRID_SIZE-1:
 			return state
 		else:
 			return state + GRID_SIZE
 	elif action == left:
 		if DEBUG:
-			print "-- club going left --"
+			print "-- going left --"
 		# if it's on the left edge
 		if (state % GRID_SIZE) == 0:
 			return state
@@ -63,7 +64,7 @@ def getNextState(state, action):
 			return state - 1
 	elif action == right:
 		if DEBUG:
-			print "-- club going right --"
+			print "-- going right --"
 		# go right 
 		if ((state+1) % GRID_SIZE) == 0:
 			return state
@@ -77,7 +78,6 @@ def main():
 
 
 	for i in range(EPISODES):
-		print "Current Episode: " + str(current_episode)		
 		next_state = 0
 		current_state = 0
 		# next action they are taking
@@ -92,11 +92,13 @@ def main():
 
 			# set reward of current state to be instant reward of next state 
 			# + the reward of the best choice of the next state
-			Q[current_state][current_action] = getReward(next_state) + ((GAMMA) * Q[next_state][pickAction(Q, next_state)])
+			Q[current_state][current_action] +=  LEARN_RATE * (getReward(next_state) + ((DISCOUNT_FACTOR) * Q[next_state][pickAction(Q, next_state)]) - Q[current_state][current_action])
 			current_state = next_state
 			num_steps += 1
+		# print "\tNumber of Steps: " + str(num_steps)
+		print str(current_episode) + "," + str(num_steps)
 		current_episode += 1
-		print "\tNumber of Steps: " + str(num_steps)
+
 
 if __name__ == '__main__':
 	main()
